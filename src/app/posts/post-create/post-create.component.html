@@ -1,0 +1,48 @@
+<mat-card>
+  <mat-spinner *ngIf='isLoading'></mat-spinner>
+  <form (submit)="onSavePost(postForm)" #postForm="ngForm" *ngIf="!isLoading">
+    <mat-form-field>
+      <input 
+      matInput 
+      type="text" 
+      placeholder="add title" 
+      name="title"
+      required
+      minlength="2"
+      [ngModel]   = "post?.title"
+      #title="ngModel" />
+      <mat-error *ngIf="title.invalid">Please enter a post title of at least 5 characters.</mat-error>
+    </mat-form-field>
+    <!-- ******   file upload   ******   -->
+    <div>
+      <button mat-stroked-button type="button" (click)="filePicker.click()" >Pick Image</button>
+      <input type="file" #filePicker>
+    </div>
+
+    <mat-form-field>
+      <textarea 
+      matInput 
+      rows="6" 
+      placeholder="add content..."
+      name="content"
+      required
+      minlength="5"
+      [ngModel] = "post?.content"
+      #content="ngModel">
+    </textarea>
+      <mat-error *ngIf="title.invalid">Please enter content of at least 10 characters.</mat-error>
+      
+    </mat-form-field>
+    
+    <button
+    mat-raised-button
+    color="accent"
+    type="submit">
+    Save Post
+    </button>
+  <!-- (click)="onAddPost()">Save Post not needed with form-->
+
+</form>
+</mat-card>
+<hr>
+<!-- <button (click)="onAddPost(postInput)">Save Post</button> -->
