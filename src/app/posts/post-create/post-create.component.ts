@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { NgForm } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, ParamMap } from '@angular/router'; // ParamMap contains route info
-import { Post } from '../post.model';
 import { PostsService } from '../posts.service';
-
+import { Post } from '../post.model';
+import { mimeType } from "./mime-type.validator";
 
 @Component({
   selector: 'app-post-create',
@@ -11,17 +11,33 @@ import { PostsService } from '../posts.service';
   styleUrls: ['./post-create.component.css']
 })
 export class PostCreateComponent implements OnInit {
-  
+  // props
   // define if edit mode, the postId and the post
-  post: Post;
-  isLoading = false;
   private mode = 'create';
   private postId: string;
+  post: Post;
+  isLoading = false;
+  // form
+  form: FormGroup;
+  imagePreview: any;
 
   constructor(public postsService: PostsService, public route: ActivatedRoute) {};  // ActivatedRoute to determine create or edit mode
 
   // determining edit or create mode
   ngOnInit() {
+    this.form = new FormGroup({
+      'title': new FormControl(null, {
+        validators: [Validators.required, Validators.minLength(3)]
+      }),
+      'content': new FormControl(null, {
+        validators: [Validators.required]
+      }),
+      'image': new FormControl(null, {
+        validators: [Validators.required],
+        asyncValidators: [mimeType]
+       
+      })
+    })
     this.route.paramMap.subscribe((paramMap: ParamMap) => { // listen for changes in the route and use cb
       if (paramMap.has("postId")) {
         this.mode = "edit";
@@ -29,30 +45,58 @@ export class PostCreateComponent implements OnInit {
         this.isLoading = true;
         this.postsService.getPost(this.postId).subscribe(postData => {
           this.isLoading = false;
-          this.post = {id: postData._id, title: postData.title, content: postData.content};
+          this.post = {
+            id: postData._id, 
+            title: postData.title, 
+            content: postData.content,
+            imagePath: postData.imagePath
+          };
+          this.form.setValue({
+            'title': this.post.title, 
+            'content': this.post.content,
+            'image': this.post.imagePath
+          })
         });
       } else {
         this.mode = 'create';
         this.postId = 'null';
       }
     });  
-  }
+  } 
   
-  onSavePost(form: NgForm){
+  onImagePicked(event: Event) {
+    const file = (event.target as HTMLInputElement).files[0];
+    this.form.patchValue({image: file}); // target single control; setValue targets all input controls
+    this.form.get('image').updateValueAndValidity();  // check for everything
+    // file reader tool
+    const reader = new FileReader();
+    reader.onload = () => {     // async cb
+      this.imagePreview = reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  onSavePost(){
      // if form is empty return
-    if (form.invalid) {  
+    if (this.form.invalid) {  
       return;
     }
     this.isLoading = true;
     // calling service according to 'mode'
     if (this.mode ==='create') {
-      this.postsService.addPost(form.value.title, form.value.content);
+      this.postsService.addPost(
+        this.form.value.title, 
+        this.form.value.content, 
+        this.form.value.image);
     } else {
       this.postsService.updatePost(
         this.postId, 
-        form.value.title, 
-        form.value.content)
+        this.form.value.title, 
+        this.form.value.content,
+        this.form.value.image
+        )
     }
-    form.resetForm();
+    this.form.reset();
   }
+
  } 

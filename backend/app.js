@@ -1,6 +1,8 @@
 const express = require("express");
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
+
 const postsRoutes = require('./routes/posts')
 const app = express();
 
@@ -22,6 +24,7 @@ mongoose
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cors());
+app.use("/images", express.static(path.join("backend/images")));
 
 // set Headers and allow CORS
 app.use((req, res, next) => {
@@ -40,7 +43,7 @@ app.use((req, res, next) => {
 // using the routes
 app.use('/api/posts', postsRoutes);
 
-
+   
 
 
 module.exports = app;

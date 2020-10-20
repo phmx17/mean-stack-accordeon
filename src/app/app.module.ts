@@ -1,7 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
-import { FormsModule } from '@angular/forms'  // this is for ngModel
+import { ReactiveFormsModule } from '@angular/forms'  // this is for ngModel
 // Angular Materials
 import { 
   MatInputModule, 
@@ -9,7 +9,8 @@ import {
   MatButtonModule, 
   MatToolbarModule, 
   MatExpansionModule, 
-  MatProgressSpinnerModule 
+  MatProgressSpinnerModule,
+  MatPaginatorModule, MatPaginator
 } from '@angular/material';
 import { HttpClientModule } from '@angular/common/http'
 import { AppComponent } from './app.component';
@@ -29,7 +30,7 @@ import { AppRoutingModule } from './app.routing.module';
   imports: [
     BrowserModule,
     AppRoutingModule,
-    FormsModule,
+    ReactiveFormsModule,
     BrowserAnimationsModule,
     MatInputModule,
     MatCardModule,
@@ -37,6 +38,7 @@ import { AppRoutingModule } from './app.routing.module';
     MatToolbarModule,
     MatExpansionModule,
     MatProgressSpinnerModule,
+    MatPaginatorModule,
     HttpClientModule
   ],
   providers: [/*PostsService*/],
