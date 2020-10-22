@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 
 const postsRoutes = require('./routes/posts')
+const userRoutes = require('./routes/user')
 const app = express();
 
 // Connect to DB
@@ -11,7 +12,8 @@ mongoose
   .connect(
     "mongodb+srv://SY:mongoboner@cluster0.ywepy.mongodb.net/accordeon?retryWrites=true&w=majority", {
       useNewUrlParser: true,
-      useUnifiedTopology: true
+      useUnifiedTopology: true,
+      useCreateIndex: true
     }
   )
   .then(() => {
@@ -42,6 +44,7 @@ app.use((req, res, next) => {
 
 // using the routes
 app.use('/api/posts', postsRoutes);
+app.use('/api/user', userRoutes);
 
    
 
