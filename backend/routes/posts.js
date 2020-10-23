@@ -1,7 +1,9 @@
 const express = require('express')
 const multer = require('multer'); // tool to save images
 const router = express.Router();
+
 const Post = require('../models/post');
+const checkAuth = require('../middleware/check-auth');  // custom middleware to protect routes with jwt
 
 // store incoming files with multer
 
@@ -28,7 +30,7 @@ const storage = multer.diskStorage({
 })
 
 // routes
-router.post('', multer({storage}).single('image'), (req, res, next) => {
+router.post('', checkAuth, multer({storage}).single('image'), (req, res, next) => { // middleware chain here with protected route
   // construct url
   const url = req.protocol + "://" + req.get("host");
   const post = new Post({
@@ -47,7 +49,7 @@ router.post('', multer({storage}).single('image'), (req, res, next) => {
   });
 });
 
-router.put('/:id', multer({storage}).single('image'), (req, res, next) => {
+router.put('/:id', checkAuth, multer({storage}).single('image'), (req, res, next) => {
   console.log(req.file)
   let imagePath = req.body.imagePath;
   if (req.file) {
@@ -78,7 +80,7 @@ router.get('', (req, res, next) => {
 
   postQuery.then(documents => {
     fetchedPosts = documents;
-    return Post.count();  // will pass posts and a count of all total
+    return Post.countDocuments();  // will pass posts and a count of all total
   }).then(count => {
     res.status(200).json({
       message: "Posts fetched successfully!",
@@ -99,7 +101,7 @@ router.get('/:id', (req, res, next) => {
   });
 });
 
-router.delete('/:id', (req, res, next) => {
+router.delete('/:id', checkAuth, (req, res, next) => {
   Post.deleteOne({ _id: req.params.id }).then(result => {
     res.status(200).json({ message: "Post deleted!" });
   });

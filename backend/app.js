@@ -28,12 +28,12 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 app.use("/images", express.static(path.join("backend/images")));
 
-// set Headers and allow CORS
+// set Headers and allow CORS; this is redundant since app use cors();
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");  // KVP, allow any domain origins
   res.setHeader(
     "Access-Control-Allow-Headers", 
-    "Origin, X-Requested-With, Content-Type, Accept"  // allow these extra Headers in addition to the default ones
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"  // allow these extra Headers in addition to the default ones
   );
   res.setHeader(
     "Access-Control-Allow-Methods",

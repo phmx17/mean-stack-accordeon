@@ -19,4 +19,4 @@ export class SignupComponent {
     }
     this.authService.createUser(form.value.email, form.value.password);
   }
-}
+} 
