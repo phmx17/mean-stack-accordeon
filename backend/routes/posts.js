@@ -29,14 +29,16 @@ const storage = multer.diskStorage({
   }
 })
 
-// routes
+/*** routes ***/
+
 router.post('', checkAuth, multer({storage}).single('image'), (req, res, next) => { // middleware chain here with protected route
-  // construct url
+  // construct url for image storage on localhost 3000
   const url = req.protocol + "://" + req.get("host");
   const post = new Post({
     title: req.body.title,
     content: req.body.content,
-    imagePath: url + '/images/' + req.file.filename // supplied by multer
+    imagePath: url + '/images/' + req.file.filename, // supplied by multer
+    creator: req.userData.userId  // field got added in checkAuth middleware
   });
   post.save().then((createdPost) => {
     res.status(201).json({
@@ -49,8 +51,12 @@ router.post('', checkAuth, multer({storage}).single('image'), (req, res, next) =
   });
 });
 
-router.put('/:id', checkAuth, multer({storage}).single('image'), (req, res, next) => {
-  console.log(req.file)
+// update post
+router.put(
+  '/:id', 
+  checkAuth, 
+  multer({storage}).single('image'), 
+  (req, res, next) => {
   let imagePath = req.body.imagePath;
   if (req.file) {
     const url = req.protocol + "://" + req.get("host");
@@ -60,19 +66,25 @@ router.put('/:id', checkAuth, multer({storage}).single('image'), (req, res, next
     _id: req.body.id,
     title: req.body.title,
     content: req.body.content,
-    imagePath: imagePath
+    imagePath: imagePath,
+    creator: req.userData.userId
   });
-  console.log(post)
-  Post.updateOne({_id: req.params.id}, post).then((result) => {
-    res.status(200).json({ message: 'Update successful' });  
+  Post.updateOne({_id: req.params.id, creator: req.userData.userId }, post).then((result) => {
+    if (result.nModified > 0) {
+      res.status(200).json({ message: 'Update successful'})
+    } else {
+      res.status(401).json({ message: 'Not authorized!'})      
+    }
   });
 });
 
 router.get('', (req, res, next) => {
+   // this is all for pagination
   const pageSize = +req.query.pageSize;  // getting query params for pagination and convert to integer
   const currentPage = +req.query.page; // otherwise undefined
   const postQuery = Post.find();  // hijacking Post.find() from below
   let fetchedPosts; // in order to pass documents between .then() blocks below
+ 
   if (pageSize && currentPage) {
     postQuery.skip(pageSize * (currentPage -1)) // if on page 3 skip 2 pages
     .limit(pageSize);    
@@ -82,6 +94,7 @@ router.get('', (req, res, next) => {
     fetchedPosts = documents;
     return Post.countDocuments();  // will pass posts and a count of all total
   }).then(count => {
+    // return data to posts.service to http.get()
     res.status(200).json({
       message: "Posts fetched successfully!",
       posts: fetchedPosts,
@@ -102,8 +115,13 @@ router.get('/:id', (req, res, next) => {
 });
 
 router.delete('/:id', checkAuth, (req, res, next) => {
-  Post.deleteOne({ _id: req.params.id }).then(result => {
-    res.status(200).json({ message: "Post deleted!" });
+  Post.deleteOne({ _id: req.params.id, creator: req.userData.userId }).then(result => {
+    console.log(result);
+    if (result.n > 0) {   // prop returned is 1 for success; 0 for not
+      res.status(200).json({ message: 'Post deleted.'})
+    } else {
+      res.status(401).json({ message: 'Not authorized!'})      
+    }
   });
 });
 

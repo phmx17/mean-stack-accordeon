@@ -28,26 +28,38 @@ export class PostsService {
               title: post.title,
               content: post.content,
               id: post._id,
-              imagePath: post.imagePath
+              imagePath: post.imagePath,
+              creator: post.creator
             };
           }),
           maxPosts: postData.maxPosts
         };
       })
-    ) 
+    )  
     .subscribe((transformedPostData) => {
+      console.log(transformedPostData);
       this.posts = transformedPostData.posts;
-      this.postsUpdated.next({posts: [...this.posts], postCount: transformedPostData.maxPosts });
+      this.postsUpdated.next(
+        {posts: [...this.posts], 
+        postCount: transformedPostData.maxPosts 
+      });
     })
   };
 
   getPostUpdateListener() {
-    return this.postsUpdated.asObservable();  // make observable to other components
+    return this.postsUpdated.asObservable();  // send as observable to other components
   }
 
   // get api single post for editing and update on page reload; returns to become an observable in post-create.ts
   getPost(id: string) {
-    return this.http.get<{_id: string, title: string, content: string, imagePath: string}>(`http://localhost:3000/api/posts/${id}`)
+    return this.http.get<{
+      _id: string, 
+      title: string, 
+      content: string, 
+      imagePath: string,
+      creator: string
+    }>
+    (`http://localhost:3000/api/posts/${id}`)
   }
 
   // create post
@@ -64,6 +76,7 @@ export class PostsService {
       });
   }
 
+  // update post
   updatePost(id: string, title: string, content: string, image: File | string) {
     let postData: Post | FormData ;   
     if (typeof(image) === 'object') {
@@ -74,7 +87,7 @@ export class PostsService {
       postData.append('image', image, title);
     } else {
       postData = {
-        id, title, content, imagePath: image
+        id, title, content, imagePath: image, creator: null 
       };
     }
      this.http

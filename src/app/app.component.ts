@@ -1,4 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+
+import { AuthService } from './auth/auth.service';
 
 // import { Post } from './posts/post.model';
 
@@ -7,12 +9,9 @@ import { Component } from '@angular/core';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent {
-  // title = 'accordeon';
-  // storedPosts: Post[] = []; // create more descriptive array
-
-  // helper that gets triggered by event postCreated($event)
-  // onPostAdded(post) {
-  //   this.storedPosts.push(post) // storedPosts will get bound to posts for post-list
-  // }
+export class AppComponent implements OnInit{
+  constructor(private authService: AuthService) {}
+  ngOnInit() {
+    this.authService.autoAuthUser(); // start off automatic authentication and token timer
+  }
 }

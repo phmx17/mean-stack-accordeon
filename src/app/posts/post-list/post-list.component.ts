@@ -1,8 +1,10 @@
 import { Component, Input, OnDestroy, OnInit } from "@angular/core";
-import { Post } from '../post.model';
-import { PostsService } from '../posts.service';
 import { Subscription } from 'rxjs';  // to store subscription created below
 import { PageEvent } from '@angular/material';
+
+import { Post } from '../post.model';
+import { PostsService } from '../posts.service';
+import { AuthService } from 'src/app/auth/auth.service';
 
 @Component({
   selector: 'app-post-list',
@@ -21,16 +23,20 @@ export class PostListComponent implements OnInit, OnDestroy {  // implement life
   postsPerPage = 2;
   currentPage = 1;
   pageSizeOptions = [1, 2, 5, 10];
+  userIsAuthenticated = false;
+  userId: string;
   private postsSub: Subscription; // type for storing subscription
+  private authStatusSub: Subscription; 
 
-  // dependency injection of our service:
-  constructor(public postsService: PostsService) {}
+
+  // dependency injection of our services:
+  constructor(public postsService: PostsService, private authService: AuthService) {}
 
   // define lifecycle method and call service getter
   ngOnInit() {
     this.isLoading = true;
     this.postsService.getPosts(this.postsPerPage, this.currentPage);  // get a list even though empty at start; add pagination params
-
+    this.userId = this.authService.getUserId();
     // subscribe to postsService Subject and save to postsSub (rxjs Subscription)
     this.postsSub = this.postsService.getPostUpdateListener() // getPostsUpdateListener = my custom method
     .subscribe((postData: {posts: Post[], postCount: number}) => {  
@@ -38,6 +44,16 @@ export class PostListComponent implements OnInit, OnDestroy {  // implement life
       this.totalPosts = postData.postCount;
       this.posts = postData.posts;
     });  
+
+    // this is a hack, since the subscription doesn't work if this page gets loaded after login; although it is the first page to be loaded on landing, before login; I don't get it, the header works with the subscription
+    this.userIsAuthenticated = this.authService.getIsAuth(); 
+
+    // subscribe to authService to check for logged in status
+    this.authStatusSub = this.authService.getAuthStatusListener()
+    .subscribe(isAuthenticated => {
+      this.userIsAuthenticated = isAuthenticated;
+      this.userId = this.authService.getUserId();
+    })
   }
   // pagination method
   onChangePage(pageData: PageEvent) {
@@ -56,5 +72,6 @@ export class PostListComponent implements OnInit, OnDestroy {  // implement life
 
   ngOnDestroy() {
     this.postsSub.unsubscribe();  // in order to prevent mem leaks
+    this.authStatusSub.unsubscribe();
   }
 };
