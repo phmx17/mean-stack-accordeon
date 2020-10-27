@@ -31,7 +31,7 @@ router.post('/login', (req, res, next) => {
   User.findOne({email: req.body.email}).then(user => {   // find user    
     if (!user) {
       return res.status(401).json({
-        message: 'Auth failed. User not found.'
+        message: 'Auth failed. User not found!'
       });
     }
 
@@ -55,7 +55,7 @@ router.post('/login', (req, res, next) => {
       message: 'Token created successfully',
       expiresIn: 3600, // this will set off timer in auth.service
       userId: fetchedUser._id
-    })
+    });
 
   }).catch(err => {
     return res.status(401).json({

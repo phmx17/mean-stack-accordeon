@@ -94,6 +94,8 @@ export class PostsService {
      .put(`http://localhost:3000/api/posts/${id}`, postData)
      .subscribe((response) => {      
        this.router.navigate(['/']);
+     }, err => {
+       this.router.navigate(['/login'])
      });
   };
 

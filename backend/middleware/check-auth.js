@@ -11,6 +11,6 @@ module.exports = (req, res, next) => {
     }
     next(); // required in order to continue down the middleware chain
   } catch (error) {
-    res.status(401).json({ message: "Auth failed. No valid token received."})
+    res.status(401).json({ message: 'Not Authorized!'})
   }
 }

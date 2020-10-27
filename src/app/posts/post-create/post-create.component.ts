@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, ParamMap } from '@angular/router'; // ParamMap contains route info
+import { Subscription } from 'rxjs';
 import { PostsService } from '../posts.service';
 import { Post } from '../post.model';
+import { AuthService } from '../../auth/auth.service';
 import { mimeType } from "./mime-type.validator";
 
 @Component({
@@ -10,21 +12,32 @@ import { mimeType } from "./mime-type.validator";
   templateUrl: './post-create.component.html',
   styleUrls: ['./post-create.component.css']
 })
-export class PostCreateComponent implements OnInit {
+export class PostCreateComponent implements OnInit, OnDestroy {
   // props
   // define if edit mode, the postId and the post
   private mode = 'create';
   private postId: string;
+  private authStatusSub: Subscription;  // for setting the loading spinner
   post: Post;
   isLoading = false;
   // form
   form: FormGroup;
   imagePreview: any;
 
-  constructor(public postsService: PostsService, public route: ActivatedRoute) {};  // ActivatedRoute to determine create or edit mode
+  constructor(
+    public postsService: PostsService, 
+    public route: ActivatedRoute,
+    private authService: AuthService
+    ) {};  // ActivatedRoute to determine create or edit mode
 
   // determining edit or create mode
   ngOnInit() {
+    // setting the spinner
+    this.authStatusSub = this.authService.getAuthStatusListener().subscribe(
+      authStatus => {
+        this.isLoading = false;
+      }
+    );
     this.form = new FormGroup({
       'title': new FormControl(null, {
         validators: [Validators.required, Validators.minLength(3)]
@@ -64,6 +77,10 @@ export class PostCreateComponent implements OnInit {
       }
     });  
   } 
+
+  ngOnDestroy() {
+    this.authStatusSub.unsubscribe();
+  }
   
   onImagePicked(event: Event) {
     const file = (event.target as HTMLInputElement).files[0];
